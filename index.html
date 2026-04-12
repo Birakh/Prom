@@ -29,6 +29,15 @@
             font-family: inherit; 
         }
         textarea { resize: vertical; }
+       .helper-box {
+            font-size: 0.9rem;
+            color: #3f3f46;
+            background: #e4e4e7;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            border-left: 4px solid #3b82f6;
+        }
         button { 
             background: #ef4444; 
             color: white; 
@@ -41,7 +50,7 @@
             font-weight: 600;
         }
         button:hover { background: #dc2626; }
-       .output-box { 
+      .output-box { 
             margin-top: 2rem; 
             display: none; 
             background: #ffffff;
@@ -60,12 +69,12 @@
             font-size: 0.9rem;
             line-height: 1.5;
         }
-       .copy-btn {
+      .copy-btn {
             background: #10b981;
             margin-top: 0;
             margin-bottom: 1rem;
         }
-       .copy-btn:hover { background: #059669; }
+      .copy-btn:hover { background: #059669; }
     </style>
 </head>
 <body>
@@ -73,10 +82,12 @@
     <p>Select your goal and enter your raw idea below. This tool generates a strict meta-prompt designed to force the AI into acting as a blunt, objective sparring partner with zero fluff.</p>
     
     <label for="modeSelect">Choose Your Architect Mode:</label>
-    <select id="modeSelect">
+    <select id="modeSelect" onchange="updateHelperText()">
         <option value="youtube">YouTube Content Strategist (Sequential Scripting)</option>
-        <option value="allpurpose">All-Purpose Expert (Bento-Box & Universal Logic)</option>
+        <option value="allpurpose">All-Purpose Expert (Bento-Box Architecture)</option>
     </select>
+
+    <div id="helperBox" class="helper-box"></div>
 
     <label for="rawIdea">Your Raw Idea / Task / Goal:</label>
     <textarea id="rawIdea" rows="5" placeholder="E.g., I want to build a tool that... OR I want to make a video about..."></textarea>
@@ -89,6 +100,19 @@
     </div>
 
     <script>
+        const helperTexts = {
+            youtube: "🎬 <strong>When to use this:</strong> Best for creating video scripts where you want to keep your unique voice. It forces the AI to draft your script sequentially (payoffs, setups, tension, hooks) so you can course-correct before it generates a generic, full-length script.",
+            allpurpose: "🧠 <strong>When to use this:</strong> Best for coding, business strategies, or complex workflows. It uses the 'Bento-Box' method to strictly separate your instructions from your raw data, which prevents the AI from getting confused or hallucinating."
+        };
+
+        function updateHelperText() {
+            const mode = document.getElementById('modeSelect').value;
+            document.getElementById('helperBox').innerHTML = helperTexts[mode];
+        }
+
+        // Initialize the helper text on load
+        updateHelperText();
+
         function generatePrompt() {
             const rawIdea = document.getElementById('rawIdea').value.trim();
             const mode = document.getElementById('modeSelect').value;
