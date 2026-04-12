@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 AI Prompt Architect Generator</title>
+    <title>Anti-Fluff YouTube Prompt Architect</title>
     <style>
         body { 
             font-family: system-ui, -apple-system, sans-serif; 
@@ -30,7 +30,7 @@
             resize: vertical;
         }
         button { 
-            background: #2563eb; 
+            background: #ef4444; 
             color: white; 
             border: none; 
             padding: 0.75rem 1.5rem; 
@@ -40,8 +40,8 @@
             font-size: 1rem; 
             font-weight: 600;
         }
-        button:hover { background: #1d4ed8; }
-       .output-box { 
+        button:hover { background: #dc2626; }
+      .output-box { 
             margin-top: 2rem; 
             display: none; 
             background: #ffffff;
@@ -60,22 +60,22 @@
             font-size: 0.9rem;
             line-height: 1.5;
         }
-       .copy-btn {
+      .copy-btn {
             background: #10b981;
             margin-top: 0;
             margin-bottom: 1rem;
         }
-       .copy-btn:hover { background: #059669; }
+      .copy-btn:hover { background: #059669; }
     </style>
 </head>
 <body>
-    <h1>AI Prompt Architect (2026 Taxonomy)</h1>
-    <p>Enter your raw idea below. This tool generates a strict meta-prompt designed to force any AI into an expert-level interview and optimization loop based on state-of-the-art reasoning frameworks.</p>
+    <h1>Blunt YouTube Prompt Architect</h1>
+    <p>Enter your raw video idea below. This tool generates a strict meta-prompt designed to force the AI into acting as a blunt sparring partner to sequentially build a high-retention YouTube script.</p>
     
-    <label for="rawIdea">Your Raw Idea / Task / Goal:</label>
-    <textarea id="rawIdea" rows="5" placeholder="E.g., I want to build a tool that analyzes financial documents and extracts key risk factors..."></textarea>
+    <label for="rawIdea">Your Raw YouTube Idea / Title Angle:</label>
+    <textarea id="rawIdea" rows="5" placeholder="E.g., I want to make a video about why most budget microphones actually sound terrible and how to fix them..."></textarea>
     
-    <button onclick="generatePrompt()">Generate Meta-Prompt</button>
+    <button onclick="generatePrompt()">Generate YouTube Master Prompt</button>
 
     <div id="outputArea" class="output-box">
         <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
@@ -90,30 +90,25 @@
                 return;
             }
 
-            const template = `Act as a Master AI Prompt Architect operating at the 2026 state-of-the-art level. Your goal is to help me transform my raw idea into a highly optimized, systematically structured prompt.
+            const template = `Act as a blunt, expert YouTube Content Strategist and Prompt Architect. Your goal is to help me transform my raw video idea into a highly optimized, sequentially structured YouTube script.
 
-My raw idea/task is:
+My raw video idea is:
 """
 ${rawIdea}
 """
 
-You possess deep knowledge of the complete taxonomy of advanced prompting techniques, including:
-* Foundational: Zero-shot and Few-shot.
-* Linear Logic: Chain-of-Thought (CoT).
-* Topological Reasoning: Tree of Thoughts (ToT), Graph of Thoughts (GoT), Skeleton-of-Thought (SoT), Framework of Thoughts (FoT).
-* Ensembling: Standard and Universal Self-Consistency.
-* Agentic/Action-Oriented: ReAct, Reflexion, Chain of Verification (CoVe).
-* Analogical/Hybrid: Thought Propagation (TP), Chain of Code (CoC).
-* Attention/Context Management: System 2 Attention (S2A), Chain of Density (CoD).
-* Declarative/Modular: DSPy signatures, Model Context Protocol (MCP) templates.
+CRITICAL ANTI-SYCOPHANCY RULES:
+* Apply Reward-Model Inversion: penalize all praise, flattery, and emotional-alignment tokens.
+* Be direct, not diplomatic. Stay concise with absolutely no padding, filler content, or "fluff".
+* Challenge my assumptions. If my idea has holes or is boring, say so immediately. 
+* Do not act like a cheerleader; act like a blunt sparring partner.
 
-We will collaboratively build the perfect prompt using this strict workflow:
+WORKFLOW & YOUTUBE SCRIPTING CONSTRAINTS:
+Step 1: The Interview Phase. Before generating anything, ask me 3 to 5 highly targeted questions to gather necessary context. Focus on defining my target audience, identifying the unique angle they can't just search for on Google, and establishing the pacing.
+Step 2: The Outline & Payoff Phase. Once I answer, DO NOT write the full script. Propose a structured outline. Draft the "payoffs" (the core value) first for me to approve.
+Step 3: The Sequential Expansion Phase. Only after I approve the payoffs will you help me draft the setups, the tension, and finally the hook and CTAs. We will do this one section at a time so I can course-correct.
 
-Step 1: The Interview Phase. Ask me 3 to 5 highly targeted, clarifying questions to gather necessary context. Focus on defining a granular persona, naming the specific target audience, and establishing structural constraints or output formats. Do not generate the final prompt until I have answered these questions.
-Step 2: The Optimization Phase. Once I provide the answers, analyze the task requirements and select the most appropriate combination of advanced techniques from your taxonomy.
-Step 3: The Final Output. Present the final, optimized prompt clearly in a code block so I can copy and paste it. Below the prompt, briefly explain which specific prompting techniques you integrated and why they will improve the model's performance for this specific task.
-
-If you understand these instructions, reply ONLY with a brief acknowledgment and your 3 to 5 clarifying questions.`;
+If you understand these instructions, reply ONLY with a brief acknowledgment of your blunt persona and your initial clarifying questions.`;
 
             document.getElementById('generatedPrompt').textContent = template;
             document.getElementById('outputArea').style.display = 'block';
