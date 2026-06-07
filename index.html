@@ -1,231 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blunt AI Prompt Architect</title>
-    <style>
-        body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            max-width: 800px; 
-            margin: 2rem auto; 
-            padding: 0 1rem; 
-            background: #f4f4f5; 
-            color: #18181b; 
-        }
-        h1 { font-size: 1.5rem; }
-        label { 
-            font-weight: 600; 
-            display: block; 
-            margin-top: 1.5rem; 
-            margin-bottom: 0.5rem;
-        }
-        select, textarea { 
-            width: 100%; 
-            padding: 0.75rem; 
-            border: 1px solid #d4d4d8; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-family: inherit; 
-        }
-        textarea { resize: vertical; }
-       .helper-box {
-            font-size: 0.9rem;
-            color: #3f3f46;
-            background: #e4e4e7;
-            padding: 0.75rem;
-            border-radius: 6px;
-            margin-top: 0.5rem;
-            border-left: 4px solid #3b82f6;
-        }
-       .checkbox-container {
-            display: flex;
-            align-items: center;
-            margin-top: 1rem;
-            background: #e0e7ff;
-            padding: 0.75rem;
-            border-radius: 6px;
-            border: 1px solid #c7d2fe;
-        }
-       .checkbox-container input {
-            margin-right: 0.75rem;
-            width: 1.2rem;
-            height: 1.2rem;
-        }
-       .checkbox-container label {
-            margin: 0;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        button { 
-            background: #ef4444; 
-            color: white; 
-            border: none; 
-            padding: 0.75rem 1.5rem; 
-            margin-top: 1.5rem; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            font-size: 1rem; 
-            font-weight: 600;
-        }
-        button:hover { background: #dc2626; }
-       .output-box { 
-            margin-top: 2rem; 
-            display: none; 
-            background: #ffffff;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #e4e4e7;
-        }
-        pre { 
-            background: #18181b; 
-            color: #e4e4e7; 
-            padding: 1.25rem; 
-            border-radius: 6px; 
-            overflow-x: auto; 
-            white-space: pre-wrap; 
-            font-family: ui-monospace, monospace;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-       .copy-btn {
-            background: #10b981;
-            margin-top: 0;
-            margin-bottom: 1rem;
-        }
-       .copy-btn:hover { background: #059669; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Generate blunt, structured AI prompts with dynamic technique stack selection. Standalone — no API key required.">
+<title>Blunt — AI Prompt Architect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Blunt AI Prompt Architect</h1>
-    <p>Select your goal and enter your raw idea below. This tool generates a strict meta-prompt designed to force the AI into acting as a blunt, objective sparring partner with zero fluff.</p>
-    
-    <label for="modeSelect">Choose Your Architect Mode:</label>
-    <select id="modeSelect" onchange="updateHelperText()">
-        <option value="youtube">YouTube Content Strategist (Sequential Scripting)</option>
-        <option value="allpurpose">All-Purpose Expert (Bento-Box Architecture)</option>
-    </select>
 
-    <div id="helperBox" class="helper-box"></div>
+</head>
+<body>
 
-    <label for="rawIdea">Your Raw Idea / Task / Goal:</label>
-    <textarea id="rawIdea" rows="5" placeholder="E.g., I want to build a tool that... OR I want to make a video about..."></textarea>
-    
-    <div class="checkbox-container">
-        <input type="checkbox" id="skillMdCheck">
-        <label for="skillMdCheck">Export with SKILL.md formatting (YAML Frontmatter for Agent Skills)</label>
+<!-- MODAL -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="closeModalOnBg(event)">
+<div class="modal">
+  <div class="modal-head">
+    <div class="modal-title">Changelog <span>— V1 through V5</span></div>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-tabs">
+    <div class="modal-tab active" data-tab="log" onclick="switchTab('log')">Changelog</div>
+    <div class="modal-tab" data-tab="fw" onclick="switchTab('fw')">Technique Reference</div>
+  </div>
+  <div class="modal-body">
+    <div class="modal-pane active" id="pane-log">
+      <div class="cl-intro">Every meaningful change from the original V1 file to V5, and the specific reason each one was made.</div>
+
+      <div class="cl-section">
+        <div class="cl-ver"><span class="cl-ver-tag v1">V1</span><span class="cl-ver-sub">— original file</span></div>
+        <div class="cl-items">
+          <div class="cl-item"><span class="bul">—</span><div>2 modes via dropdown. Fixed bluntness. Output locked in <code>&lt;pre&gt;</code>. No history, no export.</div></div>
+          <div class="cl-item"><span class="bul">—</span><div>No technique selection — AI defaults to whatever its training bias prefers for every task.</div></div>
+        </div>
+      </div>
+
+      <div class="cl-section">
+        <div class="cl-ver"><span class="cl-ver-tag v2">V2</span><span class="cl-ver-sub">— architecture overhaul</span></div>
+        <div class="cl-items">
+          <div class="cl-item"><span class="bul">◆</span><div><strong>6 mode cards</strong> with distinct workflow logic. Bluntness slider. Persona + audience injection. Feature toggles. Editable output. Download. localStorage history.</div></div>
+        </div>
+      </div>
+
+      <div class="cl-section">
+        <div class="cl-ver"><span class="cl-ver-tag v3">V3</span><span class="cl-ver-sub">— meta-cognition layer</span></div>
+        <div class="cl-items">
+          <div class="cl-item"><span class="bul">★</span><div><strong>Meta-cognitive framework selection</strong> — AI classifies the problem and selects a reasoning mode with justification before responding.</div></div>
+        </div>
+      </div>
+
+      <div class="cl-section">
+        <div class="cl-ver"><span class="cl-ver-tag v4">V4</span><span class="cl-ver-sub">— dynamic technique stack</span></div>
+        <div class="cl-items">
+          <div class="cl-item"><span class="bul">★</span><div>All manual technique toggles removed. AI self-selects a 3-layer stack (PRIMARY / SECONDARY / VERIFY) based on the brief. Conflict detection built in. All 5 prompt structure diffs applied.</div></div>
+        </div>
+      </div>
+
+      <div class="cl-section">
+        <div class="cl-ver"><span class="cl-ver-tag v5">V5</span><span class="cl-ver-sub">— this version</span></div>
+        <div class="cl-items">
+          <div class="cl-item"><span class="bul">★</span><div><strong>Bluntness now threads through the entire prompt</strong> — not just the anti-sycophancy rule. At level 4–5, the devil's advocate instructions change, the assumption audit changes, and the CoVe threshold tightens. Level 1 and 5 produce structurally different prompts.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Pushback protocol block</strong> — tells the AI to defend its technique selection and output with evidence, and to state explicitly whether it's adjusting or holding its position. Prevents silent capitulation to user pushback.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Negative space instruction</strong> — explicit DO NOT PRODUCE list: no hedging language, no end-of-section summaries, no motivational framing, no unsolicited alternatives.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>CoVe action rules completed</strong> — all 4 confidence levels now have explicit instructions. SPECULATIVE: flag to user or rewrite. LIKELY: include with explicit hedge. UNKNOWN: remove entirely. Bluntness level adjusts which threshold triggers removal.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Expertise level selector</strong> — Novice / Intermediate / Advanced / Expert. Controls how much the AI explains vs. assumes, whether it defines domain terms, and whether it focuses on basics or edge cases.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Output length selector</strong> — Brief (&lt;300w), Detailed, Full Coverage. Injected into every generated prompt so response length is explicit and consistent.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>3 additional stack conflict rules</strong> — Socratic + MECE, Step-Back + First Principles, Analogical + First Principles. All three pairs are now flagged as incompatible with explanations.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Live brief quality scorer</strong> — analyses your raw idea in real time and signals which of 5 quality markers are present (length, audience, constraints, goal, specifics). Helps you improve the input before generating.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>History search</strong> — instant filter across all saved prompts by mode name or idea text.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Ctrl+Enter to generate</strong> — keyboard shortcut.</div></div>
+        </div>
+      </div>
     </div>
 
-    <button onclick="generatePrompt()">Generate Master Prompt</button>
-
-    <div id="outputArea" class="output-box">
-        <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
-        <pre id="generatedPrompt"></pre>
+    <div class="modal-pane" id="pane-fw">
+      <div class="cl-intro">The AI selects from these and builds a PRIMARY / SECONDARY / VERIFY stack based on your brief. It must declare its choices, execution order, and ruled-out conflicts in its first reply.</div>
+      <div class="fw-list" id="fwList"></div>
     </div>
+  </div>
+</div>
+</div>
 
-    <script>
-        const helperTexts = {
-            youtube: "🎬 <strong>When to use this:</strong> Best for creating video scripts where you want to keep your unique voice. It forces the AI to draft your script sequentially (payoffs, setups, tension, hooks) so you can course-correct before it generates a generic, full-length script.",
-            allpurpose: "🧠 <strong>When to use this:</strong> Best for coding, business strategies, or complex workflows. It uses the 'Bento-Box' method to strictly separate your instructions from your raw data, which prevents the AI from getting confused or hallucinating."
-        };
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">B/</div>
+    <div class="logo-text">Blunt <em>— AI Prompt Architect</em></div>
+  </div>
+  <div class="hdr-right">
+    <div class="ver-tag">v5.0 · standalone · no API</div>
+    <button class="help-btn pulse" id="helpBtn" onclick="openModal()" title="Changelog">?</button>
+  </div>
+</header>
 
-        function updateHelperText() {
-            const mode = document.getElementById('modeSelect').value;
-            document.getElementById('helperBox').innerHTML = helperTexts[mode];
-        }
+<main>
+  <!-- 01: MODE -->
+  <section>
+    <div class="sec-lbl">01 · Architect Mode</div>
+    <div class="mode-grid" id="modeGrid"></div>
+    <div class="helper-box" id="helperBox"></div>
+    <div class="stack-preview" id="stackPreview"></div>
+  </section>
 
-        updateHelperText();
+  <!-- 02: BRIEF -->
+  <section>
+    <div class="sec-lbl">02 · Raw Idea / Task / Goal</div>
+    <div class="ta-wrap">
+      <textarea id="rawIdea" rows="6" placeholder="Describe your raw idea. The AI reads this brief and self-selects a compatible technique stack. Better input = sharper stack selection."></textarea>
+      <div class="char-count" id="charCount">0 chars</div>
+    </div>
+    <div class="brief-scorer" id="briefScorer"></div>
+    <div class="auto-badge"><div class="auto-dot"></div> Technique stack auto-selected · Ctrl+Enter to generate</div>
 
-        function generatePrompt() {
-            const rawIdea = document.getElementById('rawIdea').value.trim();
-            const mode = document.getElementById('modeSelect').value;
-            const useSkillMd = document.getElementById('skillMdCheck').checked;
-            
-            if (!rawIdea) {
-                alert('Please enter your idea or task first.');
-                return;
-            }
+    <button class="adv-btn" id="advBtn" onclick="toggleAdv()">
+      <span class="arr">▶</span> Advanced Options
+    </button>
+    <div class="adv-panel" id="advPanel">
+      <div class="adv-grid">
+        <div>
+          <div class="field-label">Custom Expert Persona (optional)</div>
+          <input type="text" id="personaInput" placeholder="e.g., Ex-Googler turned indie SaaS founder">
+        </div>
+        <div>
+          <div class="field-label">Target Audience (optional)</div>
+          <input type="text" id="audienceInput" placeholder="e.g., Non-technical startup founders">
+        </div>
+        <div>
+          <div class="field-label">Expertise Level</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn exp-btn" data-val="novice" onclick="setExpertise('novice')">Novice</button>
+            <button class="seg-btn exp-btn" data-val="intermediate" onclick="setExpertise('intermediate')">Intermediate</button>
+            <button class="seg-btn exp-btn active" data-val="advanced" onclick="setExpertise('advanced')">Advanced</button>
+            <button class="seg-btn exp-btn" data-val="expert" onclick="setExpertise('expert')">Expert</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-label">Output Length</div>
+          <div class="seg-ctrl">
+            <button class="seg-btn len-btn" data-val="brief" onclick="setOutputLen('brief')">Brief &lt;300w</button>
+            <button class="seg-btn len-btn active" data-val="detailed" onclick="setOutputLen('detailed')">Detailed</button>
+            <button class="seg-btn len-btn" data-val="full" onclick="setOutputLen('full')">Full Coverage</button>
+          </div>
+        </div>
+        <div class="adv-full">
+          <div class="field-label">Bluntness Level</div>
+          <div class="slider-row">
+            <input type="range" id="bluntSlider" min="1" max="5" value="4" oninput="syncBluntness()">
+            <div class="blunt-val" id="bluntVal">Brutal</div>
+          </div>
+          <div class="slider-ticks">
+            <span>Diplomatic</span><span>Direct</span><span>No-Filter</span><span>Brutal</span><span>Savage</span>
+          </div>
+        </div>
+      </div>
+      <label class="tgl-row">
+        <input type="checkbox" id="tSkill">
+        <div class="tgl-sw"></div>
+        <span class="tgl-text">Export as SKILL.md</span>
+      </label>
+    </div>
+  </section>
 
-            let promptBody = "";
+  <!-- GENERATE -->
+  <section>
+    <button class="gen-btn" onclick="generate()">
+      ⚡ Generate Master Prompt
+      <span class="kbd-hint">Ctrl+Enter</span>
+    </button>
+  </section>
 
-            if (mode === "youtube") {
-                promptBody = `Act as a blunt, expert YouTube Content Strategist and Prompt Architect. Your goal is to help me transform my raw video idea into a highly optimized, sequentially structured YouTube script.
+  <!-- OUTPUT -->
+  <section class="output-section" id="outputSection">
+    <div class="sec-lbl">03 · Generated Prompt</div>
+    <div class="out-meta" id="outMeta"></div>
+    <textarea class="output-ta" id="outputTA" rows="22" spellcheck="false"></textarea>
+    <div class="out-actions">
+      <button class="abtn ok" id="copyBtn" onclick="copyPrompt()">⊕ Copy</button>
+      <button class="abtn" onclick="dlFile('md')">↓ .md</button>
+      <button class="abtn" onclick="dlFile('txt')">↓ .txt</button>
+      <button class="abtn red" onclick="clearOutput()">✕ Clear</button>
+    </div>
+  </section>
 
-My raw video idea is:
-<context>
-${rawIdea}
-</context>
+  <!-- HISTORY -->
+  <section class="history-section" id="histSection">
+    <div class="divider"></div>
+    <div class="sec-lbl">Prompt History</div>
+    <div class="hist-head">
+      <div class="hist-sub">Click any entry to restore it.</div>
+      <button class="clear-btn" onclick="clearHistory()">Clear All</button>
+    </div>
+    <input type="text" class="hist-search" id="histSearch" placeholder="Filter by mode or idea..." oninput="filterHistory(this.value)">
+    <div class="hist-list" id="histList"></div>
+  </section>
+</main>
 
-CRITICAL ANTI-SYCOPHANCY RULES:
-* Apply Reward-Model Inversion: penalize all praise, flattery, and emotional-alignment tokens.
-* Be direct, not diplomatic. Stay concise with absolutely no padding, filler content, or "fluff".
-* Challenge my assumptions. If my idea has holes or is boring, say so immediately. 
-* Do not act like a cheerleader; act like a blunt sparring partner.
-
-WORKFLOW & YOUTUBE SCRIPTING CONSTRAINTS:
-Step 1: The Interview Phase. Before generating anything, ask me 3 to 5 highly targeted questions to gather necessary context. Focus on defining my target audience, identifying the unique angle they can't just search for on Google, and establishing the pacing.
-Step 2: Pre-flight Check. Once I answer your questions, you must explicitly list out the formatting constraints and anti-sycophancy rules you are about to follow to confirm you understand them.
-Step 3: The Outline & Payoff Phase. DO NOT write the full script. Propose a structured outline. Draft the "payoffs" (the core value) first for me to approve.
-Step 4: Chain of Verification (CoVe). If your outline or script contains factual claims, you must independently fact-check them. Plan verification questions, answer them, and revise your output to remove hallucinations before presenting it to me.
-Step 5: The Sequential Expansion Phase. Only after I approve the payoffs will you help me draft the setups, the tension, and finally the hook and CTAs. We will do this one section at a time so I can course-correct.
-
-If you understand these instructions, reply ONLY with a brief acknowledgment of your blunt persona and your initial clarifying questions.`;
-
-            } else {
-                promptBody = `Act as a blunt, elite-level AI Prompt Architect and Domain Expert. Your goal is to help me transform my raw idea into a highly optimized, systematically structured "Bento-Box" task prompt.
-
-My raw idea/task is:
-<context>
-${rawIdea}
-</context>
-
-CRITICAL ANTI-SYCOPHANCY RULES:
-* Apply Reward-Model Inversion. Be direct, not diplomatic. Stay concise with absolutely no padding, filler content, or "fluff".
-* Challenge my assumptions. If my proposed logic is flawed, say so immediately. 
-* Provide ruthless, no-fluff answers. Do not act like a cheerleader; act like a blunt technical advisor.
-
-WORKFLOW CONSTRAINTS:
-Step 1: The Interview Phase. Before generating the final prompt, ask me 3 to 5 highly targeted questions. Focus on defining the specific domain expert persona you need to adopt, the exact target audience for the output, and the required formatting constraints.
-Step 2: Pre-flight Check. Once I answer, you must explicitly repeat back the exact constraints, formatting rules, and anti-sycophancy rules you are about to follow.
-Step 3: The Optimization Phase. Analyze the task requirements and determine the best advanced prompting frameworks to apply.
-Step 4: Chain of Verification (CoVe). Generate a silent baseline response, plan verification questions to scrutinize your own claims, answer them independently, and actively revise the text to remove any factual errors.
-Step 5: The Bento-Box Generation. Generate the final, optimized prompt for me to use. You must strictly separate the imperative actions (using tags) from the raw data and context (using <context> XML tags) to ensure maximum reliability.
-
-If you understand these instructions, reply ONLY with a brief acknowledgment of your blunt persona and your initial clarifying questions.`;
-            }
-
-            let finalOutput = promptBody;
-
-            // Apply SKILL.md YAML Frontmatter if checked
-            if (useSkillMd) {
-                const skillName = mode === "youtube"? "youtube-script-architect" : "bento-box-architect";
-                const skillDescription = mode === "youtube" 
-                   ? "Acts as a blunt YouTube strategist to sequentially build scripts without sycophancy." 
-                    : "Acts as an elite prompt architect to generate hallucination-free Bento-Box prompts.";
-                
-                finalOutput = `---
-name: ${skillName}
-description: ${skillDescription}
-license: Apache-2.0
-version: "1.0"
----
-
-${promptBody}`;
-            }
-
-            document.getElementById('generatedPrompt').textContent = finalOutput;
-            document.getElementById('outputArea').style.display = 'block';
-        }
-
-        function copyToClipboard() {
-            const textToCopy = document.getElementById('generatedPrompt').textContent;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => { btn.textContent = originalText; }, 2000);
-            });
-        }
-    </script>
+<script src="app.js"></script>
 </body>
 </html>
