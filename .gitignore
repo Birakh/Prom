@@ -1,0 +1,11 @@
+# Font files are downloaded at deploy time — do not commit binaries
+fonts/*.woff2
+fonts/*.woff
+fonts/*.ttf
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
