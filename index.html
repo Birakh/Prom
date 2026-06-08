@@ -3,117 +3,172 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Generate blunt, structured AI prompts with dynamic technique stack selection. Standalone — no API key required.">
+<meta name="description" content="Generate blunt, structured AI prompts with dynamic technique stack selection. No API key required.">
 <title>Blunt — AI Prompt Architect</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-</head>
-<body>
-
-<!-- MODAL -->
+<!-- ── MODAL ──────────────────────────────────────────────────────── -->
 <div class="modal-backdrop" id="modalBackdrop" onclick="closeModalOnBg(event)">
 <div class="modal">
   <div class="modal-head">
-    <div class="modal-title">Changelog <span>— V1 through V5</span></div>
+    <div class="modal-title">Blunt <span>— AI Prompt Architect v6</span></div>
     <button class="modal-close" onclick="closeModal()">✕</button>
   </div>
   <div class="modal-tabs">
-    <div class="modal-tab active" data-tab="log" onclick="switchTab('log')">Changelog</div>
-    <div class="modal-tab" data-tab="fw" onclick="switchTab('fw')">Technique Reference</div>
+    <div class="modal-tab active" data-tab="guide" onclick="switchTab('guide')">Strong Briefs</div>
+    <div class="modal-tab" data-tab="fw" onclick="switchTab('fw')">Technique Ref</div>
+    <div class="modal-tab" data-tab="log" onclick="switchTab('log')">Changelog</div>
   </div>
   <div class="modal-body">
-    <div class="modal-pane active" id="pane-log">
-      <div class="cl-intro">Every meaningful change from the original V1 file to V5, and the specific reason each one was made.</div>
 
+    <!-- STRONG BRIEFS TAB -->
+    <div class="modal-pane active" id="pane-guide">
+      <div class="guide-intro">
+        The quality of the generated prompt is capped by the quality of your brief. The brief scorer flags issues — this guide shows what good looks like. Three before/after examples across the most-used modes.
+      </div>
+
+      <div class="guide-block">
+        <div class="guide-mode-hdr"><span class="guide-mode-icon">🎬</span><span class="guide-mode-name">YouTube Strategist</span></div>
+        <div class="guide-compare">
+          <div class="guide-col bad">
+            <div class="guide-lbl">Weak brief</div>
+            <div class="guide-brief">"I want to make a video about productivity for my channel."</div>
+            <div class="guide-result">Result: Generic tips-and-habits script. Indistinguishable from 10,000 other videos. AI has nothing to work with.</div>
+          </div>
+          <div class="guide-col ok">
+            <div class="guide-lbl">Strong brief</div>
+            <div class="guide-brief">"Script for my 52k subscriber channel (busy professionals, 25–40) on why most productivity systems fail within 2 weeks. Unique angle: behavioural science + my personal story of failing every system I tried. 10–12 min. High retention. Hook must land within 30 seconds."</div>
+            <div class="guide-result">Result: Specific payoffs, tension arc, evidence-backed claims, differentiated hook. The AI has an angle to defend.</div>
+          </div>
+        </div>
+        <div class="guide-signals">Added: audience defined · length specified · unique angle stated · hook constraint · personal differentiation</div>
+      </div>
+
+      <div class="guide-block">
+        <div class="guide-mode-hdr"><span class="guide-mode-icon">⚙️</span><span class="guide-mode-name">Code Architect</span></div>
+        <div class="guide-compare">
+          <div class="guide-col bad">
+            <div class="guide-lbl">Weak brief</div>
+            <div class="guide-brief">"Build me a todo app."</div>
+            <div class="guide-result">Result: Generic React todo with local state. No error handling. No mention of your actual constraints. The AI guessed everything.</div>
+          </div>
+          <div class="guide-col ok">
+            <div class="guide-lbl">Strong brief</div>
+            <div class="guide-brief">"React 18 + TypeScript todo app for enterprise users who need audit trails. Must work offline (PWA). Constraints: no external state libraries — useReducer only. Must handle 10k+ items without lag. Done = CRUD + local persistence + CSV export + zero TypeScript errors."</div>
+            <div class="guide-result">Result: Architecture that addresses audit trails, offline mode, performance, and the no-library constraint before a single line is written.</div>
+          </div>
+        </div>
+        <div class="guide-signals">Added: tech stack · user context · explicit constraints · performance requirement · clear definition of done</div>
+      </div>
+
+      <div class="guide-block">
+        <div class="guide-mode-hdr"><span class="guide-mode-icon">📊</span><span class="guide-mode-name">Business Strategist</span></div>
+        <div class="guide-compare">
+          <div class="guide-col bad">
+            <div class="guide-lbl">Weak brief</div>
+            <div class="guide-brief">"I want to start a SaaS business."</div>
+            <div class="guide-result">Result: Generic advice about market research and MVPs. No pressure on your specific assumptions. Useless.</div>
+          </div>
+          <div class="guide-col ok">
+            <div class="guide-lbl">Strong brief</div>
+            <div class="guide-brief">"Validating a SaaS for solo law practitioners (50k in the US). Competing with Clio and MyCase. Differentiator: AI-assisted document templates. Budget: $50k runway. Key question: is the differentiator defensible, or will Clio ship it in 6 months?"</div>
+            <div class="guide-result">Result: Assumption audit focused on the specific market, named competitors, and the one question that determines whether to proceed.</div>
+          </div>
+        </div>
+        <div class="guide-signals">Added: specific market · competitor names · differentiator stated · budget context · exact question to answer</div>
+      </div>
+    </div>
+
+    <!-- TECHNIQUE REFERENCE TAB -->
+    <div class="modal-pane" id="pane-fw">
+      <div class="guide-intro">The AI selects from these and builds a PRIMARY / SECONDARY / VERIFY stack based on your brief. It must declare its choices, execution order, and ruled-out conflicts in its first reply — and end every subsequent response with a STACK AUDIT line.</div>
+      <div class="fw-list" id="fwList"></div>
+    </div>
+
+    <!-- CHANGELOG TAB -->
+    <div class="modal-pane" id="pane-log">
+      <div class="cl-intro">Every meaningful change from the original V1 file to V6.</div>
       <div class="cl-section">
         <div class="cl-ver"><span class="cl-ver-tag v1">V1</span><span class="cl-ver-sub">— original file</span></div>
         <div class="cl-items">
-          <div class="cl-item"><span class="bul">—</span><div>2 modes via dropdown. Fixed bluntness. Output locked in <code>&lt;pre&gt;</code>. No history, no export.</div></div>
-          <div class="cl-item"><span class="bul">—</span><div>No technique selection — AI defaults to whatever its training bias prefers for every task.</div></div>
+          <div class="cl-item"><span class="bul">—</span><div>2 modes, dropdown, fixed bluntness. Output locked in <code>&lt;pre&gt;</code>. No technique selection.</div></div>
         </div>
       </div>
-
       <div class="cl-section">
         <div class="cl-ver"><span class="cl-ver-tag v2">V2</span><span class="cl-ver-sub">— architecture overhaul</span></div>
         <div class="cl-items">
-          <div class="cl-item"><span class="bul">◆</span><div><strong>6 mode cards</strong> with distinct workflow logic. Bluntness slider. Persona + audience injection. Feature toggles. Editable output. Download. localStorage history.</div></div>
+          <div class="cl-item"><span class="bul">◆</span><div>6 mode cards, bluntness slider, persona + audience, toggles, editable output, download, localStorage history, dark theme.</div></div>
         </div>
       </div>
-
       <div class="cl-section">
-        <div class="cl-ver"><span class="cl-ver-tag v3">V3</span><span class="cl-ver-sub">— meta-cognition layer</span></div>
+        <div class="cl-ver"><span class="cl-ver-tag v3">V3</span><span class="cl-ver-sub">— meta-cognition</span></div>
         <div class="cl-items">
-          <div class="cl-item"><span class="bul">★</span><div><strong>Meta-cognitive framework selection</strong> — AI classifies the problem and selects a reasoning mode with justification before responding.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div>AI classifies the problem and selects a reasoning mode with justification before responding.</div></div>
         </div>
       </div>
-
       <div class="cl-section">
         <div class="cl-ver"><span class="cl-ver-tag v4">V4</span><span class="cl-ver-sub">— dynamic technique stack</span></div>
         <div class="cl-items">
-          <div class="cl-item"><span class="bul">★</span><div>All manual technique toggles removed. AI self-selects a 3-layer stack (PRIMARY / SECONDARY / VERIFY) based on the brief. Conflict detection built in. All 5 prompt structure diffs applied.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div>All manual toggles removed. AI self-selects a 3-layer stack (PRIMARY / SECONDARY / VERIFY). Conflict detection. 5 prompt structure diffs applied.</div></div>
         </div>
       </div>
-
       <div class="cl-section">
-        <div class="cl-ver"><span class="cl-ver-tag v5">V5</span><span class="cl-ver-sub">— this version</span></div>
+        <div class="cl-ver"><span class="cl-ver-tag v5">V5</span><span class="cl-ver-sub">— depth + UX</span></div>
         <div class="cl-items">
-          <div class="cl-item"><span class="bul">★</span><div><strong>Bluntness now threads through the entire prompt</strong> — not just the anti-sycophancy rule. At level 4–5, the devil's advocate instructions change, the assumption audit changes, and the CoVe threshold tightens. Level 1 and 5 produce structurally different prompts.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>Pushback protocol block</strong> — tells the AI to defend its technique selection and output with evidence, and to state explicitly whether it's adjusting or holding its position. Prevents silent capitulation to user pushback.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>Negative space instruction</strong> — explicit DO NOT PRODUCE list: no hedging language, no end-of-section summaries, no motivational framing, no unsolicited alternatives.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>CoVe action rules completed</strong> — all 4 confidence levels now have explicit instructions. SPECULATIVE: flag to user or rewrite. LIKELY: include with explicit hedge. UNKNOWN: remove entirely. Bluntness level adjusts which threshold triggers removal.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>Expertise level selector</strong> — Novice / Intermediate / Advanced / Expert. Controls how much the AI explains vs. assumes, whether it defines domain terms, and whether it focuses on basics or edge cases.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>Output length selector</strong> — Brief (&lt;300w), Detailed, Full Coverage. Injected into every generated prompt so response length is explicit and consistent.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>3 additional stack conflict rules</strong> — Socratic + MECE, Step-Back + First Principles, Analogical + First Principles. All three pairs are now flagged as incompatible with explanations.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>Live brief quality scorer</strong> — analyses your raw idea in real time and signals which of 5 quality markers are present (length, audience, constraints, goal, specifics). Helps you improve the input before generating.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>History search</strong> — instant filter across all saved prompts by mode name or idea text.</div></div>
-          <div class="cl-item"><span class="bul">★</span><div><strong>Ctrl+Enter to generate</strong> — keyboard shortcut.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div>Bluntness threads through all blocks. Pushback protocol. Negative space. CoVe action rules. Expertise level. Output length. 6 conflict rules. Live brief scorer. History search. Ctrl+Enter.</div></div>
+        </div>
+      </div>
+      <div class="cl-section">
+        <div class="cl-ver"><span class="cl-ver-tag v6">V6</span><span class="cl-ver-sub">— this version</span></div>
+        <div class="cl-items">
+          <div class="cl-item"><span class="bul">★</span><div><strong>Stack audit block</strong> — every AI response must end with <code>AUDIT: STACK INTACT</code> or <code>AUDIT: DRIFT — [description]</code>. Closes the declaration-theatre gap where the AI declares a stack, then ignores it.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Multi-mode stacking</strong> — select up to 2 modes. 8 pre-built popular pairs (Technical Co-Founder, Go-to-Market, etc.). Dual prompts run Phase 1 → handoff → Phase 2 with one unified technique stack across both phases.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Notes field on every history entry</strong> — inline editable, auto-saves on blur. History is now a session log, not just a list of inputs.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Brief scorer rewritten</strong> — now penalises vague language ("something", "interesting", "good") and requires minimum word count before showing any green signals. Measures information density, not just keyword presence.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>"Strong Briefs" guide replaces changelog as default help</strong> — 3 before/after examples showing exactly what moves the quality needle. Changelog moved to its own tab.</div></div>
+          <div class="cl-item"><span class="bul">★</span><div><strong>Self-hosted fonts</strong> — Google Fonts removed. Outfit and JetBrains Mono served from <code>/fonts/</code> via <code>@font-face</code>. GitHub Action downloads them at deploy time. <code>setup-fonts.sh</code> for local use. Zero external runtime dependencies.</div></div>
         </div>
       </div>
     </div>
 
-    <div class="modal-pane" id="pane-fw">
-      <div class="cl-intro">The AI selects from these and builds a PRIMARY / SECONDARY / VERIFY stack based on your brief. It must declare its choices, execution order, and ruled-out conflicts in its first reply.</div>
-      <div class="fw-list" id="fwList"></div>
-    </div>
   </div>
 </div>
 </div>
 
-<!-- HEADER -->
+<!-- ── HEADER ──────────────────────────────────────────────────────── -->
 <header>
   <div class="logo">
     <div class="logo-icon">B/</div>
     <div class="logo-text">Blunt <em>— AI Prompt Architect</em></div>
   </div>
   <div class="hdr-right">
-    <div class="ver-tag">v5.0 · standalone · no API</div>
-    <button class="help-btn pulse" id="helpBtn" onclick="openModal()" title="Changelog">?</button>
+    <div class="ver-tag">v6.0 · self-hosted · no API</div>
+    <button class="help-btn pulse" id="helpBtn" onclick="openModal()" title="Guide &amp; changelog">?</button>
   </div>
 </header>
 
 <main>
+
   <!-- 01: MODE -->
   <section>
-    <div class="sec-lbl">01 · Architect Mode</div>
+    <div class="sec-lbl">01 · Architect Mode <span style="color:var(--tm);font-weight:400;font-size:.55rem;letter-spacing:0;text-transform:none;margin-left:.25rem">— select 1 or 2</span></div>
     <div class="mode-grid" id="modeGrid"></div>
     <div class="helper-box" id="helperBox"></div>
     <div class="stack-preview" id="stackPreview"></div>
+    <div class="pairs-row" id="pairsRow"></div>
   </section>
 
   <!-- 02: BRIEF -->
   <section>
     <div class="sec-lbl">02 · Raw Idea / Task / Goal</div>
     <div class="ta-wrap">
-      <textarea id="rawIdea" rows="6" placeholder="Describe your raw idea. The AI reads this brief and self-selects a compatible technique stack. Better input = sharper stack selection."></textarea>
+      <textarea id="rawIdea" rows="6" placeholder="Describe your raw idea. The AI reads this brief and self-selects a compatible technique stack. See the ? guide for what makes a strong brief."></textarea>
       <div class="char-count" id="charCount">0 chars</div>
     </div>
     <div class="brief-scorer" id="briefScorer"></div>
-    <div class="auto-badge"><div class="auto-dot"></div> Technique stack auto-selected · Ctrl+Enter to generate</div>
+    <div class="auto-badge"><div class="auto-dot"></div> Stack auto-selected · Ctrl+Enter to generate</div>
 
     <button class="adv-btn" id="advBtn" onclick="toggleAdv()">
       <span class="arr">▶</span> Advanced Options
@@ -164,7 +219,7 @@
     </div>
   </section>
 
-  <!-- GENERATE -->
+  <!-- 03: GENERATE -->
   <section>
     <button class="gen-btn" onclick="generate()">
       ⚡ Generate Master Prompt
@@ -172,7 +227,7 @@
     </button>
   </section>
 
-  <!-- OUTPUT -->
+  <!-- 04: OUTPUT -->
   <section class="output-section" id="outputSection">
     <div class="sec-lbl">03 · Generated Prompt</div>
     <div class="out-meta" id="outMeta"></div>
@@ -185,17 +240,18 @@
     </div>
   </section>
 
-  <!-- HISTORY -->
+  <!-- 05: HISTORY -->
   <section class="history-section" id="histSection">
     <div class="divider"></div>
     <div class="sec-lbl">Prompt History</div>
     <div class="hist-head">
-      <div class="hist-sub">Click any entry to restore it.</div>
+      <div class="hist-sub">Click any entry to restore. Add notes on what worked.</div>
       <button class="clear-btn" onclick="clearHistory()">Clear All</button>
     </div>
     <input type="text" class="hist-search" id="histSearch" placeholder="Filter by mode or idea..." oninput="filterHistory(this.value)">
     <div class="hist-list" id="histList"></div>
   </section>
+
 </main>
 
 <script src="app.js"></script>
