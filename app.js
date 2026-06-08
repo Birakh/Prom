@@ -67,6 +67,27 @@ const BLUNTNESS_MODS={
   5:{da:'assume the entire approach fails. Prove why before considering any path to success.',audit:'maximum adversarial — assign a worst-case scenario to every assumption before evaluating it',cove:'treat SPECULATIVE as UNKNOWN. LIKELY requires primary source justification. When in doubt, remove.',tone:'assume failure is the default state. Every claim must prove itself.'}
 };
 
+
+// ── V7: TEMPLATE STARTERS ────────────────────────────────────────────
+const STARTER_TEMPLATES=[
+  {id:'_yt',  modeId:'youtube',    name:'YouTube script',
+   brief:'Script for my [Xk] subscriber channel targeting [demographic, age range].\nTopic: [topic].\nUnique angle: [differentiator — what makes this different from existing videos].\nLength: [X] minutes. Hook within [X] seconds.\nTone: [conversational / educational / story-driven].'},
+  {id:'_code',modeId:'code',       name:'Code task',
+   brief:'Build [what] using [stack and versions].\nTarget users: [who and their context].\nConstraints: [what to avoid or limit].\nPerformance requirement: [if any].\nDone = [specific definition of done with measurable criteria].'},
+  {id:'_biz', modeId:'business',   name:'Business validation',
+   brief:'Validating [idea] for [specific market].\nCompeting with [named competitors].\nProposed differentiator: [what exactly].\nBudget/runway: [amount].\nKey question to answer: [the one thing that determines go/no-go].'},
+  {id:'_res', modeId:'research',   name:'Research brief',
+   brief:'Deep research on [topic].\nPurpose: [what this informs or decides].\nRequired depth: [surface / thorough / exhaustive].\nAcceptable sources: [academic / industry / any].\nOutput format: [structure you need].\nKey open questions: [what you most need answered].'},
+  {id:'_mkt', modeId:'marketing',  name:'Marketing copy',
+   brief:'Copy for [channel: ad / email / landing page] targeting [audience with emotional context].\nGoal: [single desired action].\n#1 objection to overcome: [specific objection].\nTone: [direct / conversational / urgent].\nConstraint: [word limit or brand rules if any].'},
+  {id:'_ap',  modeId:'allpurpose', name:'Complex task',
+   brief:'Task: [exactly what needs to be done].\nContext: [relevant background].\nConstraints: [limits, requirements, what to avoid].\nOutput format: [how you want the result structured].\nDone when: [specific completion criteria].'}
+];
+const TKEY='blunt_v7_templates';
+
+// ── V7: STATE ─────────────────────────────────────────────────────────
+let diffBaseId=null;
+
 // V6: multi-mode state (1 or 2 selected)
 let selectedModes=['youtube'];
 let expertiseLevel='advanced';
@@ -165,7 +186,7 @@ function analyzeBrief(text){
 
 // ── CONTROLS ──────────────────────────────────────────────────────────
 document.getElementById('rawIdea').addEventListener('input',function(){
-  document.getElementById('charCount').textContent=this.value.length+' chars';
+  const l=this.value.length;document.getElementById('charCount').textContent=l+' chars · ~'+estimateTokens(this.value)+' tokens';
   clearTimeout(briefTimer);briefTimer=setTimeout(()=>analyzeBrief(this.value),250);
 });
 function toggleAdv(){document.getElementById('advBtn').classList.toggle('open');document.getElementById('advPanel').classList.toggle('vis')}
@@ -427,6 +448,7 @@ function generate(){
   document.getElementById('outputTA').value=body;
 
   const words=body.trim().split(/\s+/).length;
+  const tokens=estimateTokens(body);
   const m1=MODES.find(x=>x.id===selectedModes[0]);
   const modeLabel=selectedModes.length===2?`${m1.icon}+${MODES.find(x=>x.id===selectedModes[1]).icon} Dual Mode`:`${m1.icon} ${m1.name}`;
 
@@ -435,7 +457,7 @@ function generate(){
     <span class="otag auto">⬡ stack: auto-selected</span>
     <span class="otag">Bluntness: ${BLUNTNESS_LABELS[bluntness-1]}</span>
     <span class="otag">${expertiseLevel} · ${outputLen}</span>
-    <span class="otag">${words} words · ${body.length} chars</span>
+    <span class="otag">${words} words · ${tokenLabel(tokens)}</span>
     <span class="otag">${new Date().toLocaleTimeString()}</span>`;
 
   const sec=document.getElementById('outputSection');
@@ -470,7 +492,7 @@ function saveHistory(modeIds,idea,prompt,bluntness,expertise,outLen){
   h.unshift({id:Date.now(),
     modeIds:modeIds.slice(),
     modeName:m2?`${m1.name} + ${m2.name}`:m1.name,
-    idea:idea.substring(0,120),prompt,bluntness,expertise,outLen,note:'',
+    idea:idea.substring(0,120),prompt,bluntness,expertise,outLen,note:'',rating:0,used:false,
     time:new Date().toLocaleString()});
   if(h.length>15)h=h.slice(0,15);
   try{localStorage.setItem(HKEY,JSON.stringify(h))}catch(e){}
@@ -504,6 +526,11 @@ function renderHistoryItems(h){
           <div class="hist-time">${e.time}</div>
           <button class="hist-del" onclick="delHistory(event,${e.id})">✕</button>
         </div>
+      </div>
+      <div class="hist-bottom-row" onclick="event.stopPropagation()">
+        <div class="hist-stars">${[1,2,3,4,5].map(s=>`<span class="star ${(e.rating||0)>=s?'on':''}" onclick="setRating(${e.id},${s})">★</span>`).join('')}</div>
+        <button class="used-btn${e.used?' on':''}" onclick="toggleUsed(${e.id})">${e.used?'✓ Used':'Mark used'}</button>
+        <button class="diff-btn${diffBaseId===e.id?' active':diffBaseId?' compare':''}" onclick="${diffBaseId&&diffBaseId!==e.id?`openDiff(${diffBaseId},${e.id})`:`startDiff(${e.id})`}">${diffBaseId===e.id?'⇄ Cancel':diffBaseId?'Compare →':'⇄ Diff'}</button>
       </div>
       <div class="hist-note-row" onclick="event.stopPropagation()">
         <textarea class="hist-note-ta" placeholder="Notes: what worked, what to improve next time..."
@@ -544,6 +571,198 @@ function clearHistory(){
   try{localStorage.removeItem(HKEY)}catch(e){}
   document.getElementById('histSection').style.display='none';
 }
+
+
+// ── V7: TOKEN COUNTER ─────────────────────────────────────────────────
+function estimateTokens(text){return Math.ceil(text.length/3.5)}
+function tokenClass(t){return t<1000?'tok-ok':t<2000?'tok-warn':t<3000?'tok-high':'tok-over'}
+function tokenLabel(t){
+  const cls=tokenClass(t);
+  const warn=t>=3000?' ⚠':'';
+  return `<span class="${cls}">~${t.toLocaleString()} tokens${warn}</span>`;
+}
+
+// ── V7: RATING + USED ─────────────────────────────────────────────────
+function setRating(id,stars){
+  let h=loadHistory();
+  const e=h.find(x=>x.id===id);
+  if(!e)return;
+  e.rating=e.rating===stars?0:stars; // clicking same star deselects
+  try{localStorage.setItem(HKEY,JSON.stringify(h))}catch(err){}
+  renderHistory();
+}
+function toggleUsed(id){
+  let h=loadHistory();
+  const e=h.find(x=>x.id===id);
+  if(!e)return;
+  e.used=!e.used;
+  try{localStorage.setItem(HKEY,JSON.stringify(h))}catch(err){}
+  renderHistory();
+}
+
+// ── V7: TEMPLATES ─────────────────────────────────────────────────────
+function loadStoredTemplates(){try{return JSON.parse(localStorage.getItem(TKEY))||[]}catch{return[]}}
+function saveStoredTemplates(t){try{localStorage.setItem(TKEY,JSON.stringify(t))}catch(e){}}
+
+function toggleTemplates(){
+  document.getElementById('tmplBtn').classList.toggle('open');
+  const p=document.getElementById('tmplPanel');
+  p.classList.toggle('vis');
+  if(p.classList.contains('vis'))renderTemplates();
+}
+
+function renderTemplates(){
+  const stored=loadStoredTemplates();
+  // Starters
+  document.getElementById('tmplStarters').innerHTML=STARTER_TEMPLATES.map(t=>`
+    <div class="tmpl-item">
+      <span class="tmpl-icon">${MODES.find(m=>m.id===t.modeId)?.icon||'🧠'}</span>
+      <span class="tmpl-name">${t.name}</span>
+      <button class="tmpl-load" onclick="applyTemplate(${JSON.stringify(t.brief).replace(/'/g,"&#39;")},${JSON.stringify([t.modeId])})">Load</button>
+    </div>`).join('');
+  // Saved
+  const savedEl=document.getElementById('tmplSaved');
+  if(!stored.length){
+    savedEl.innerHTML='<div class="tmpl-empty">No saved templates yet.</div>';
+  } else {
+    savedEl.innerHTML=stored.map(t=>`
+      <div class="tmpl-item">
+        <span class="tmpl-icon">${t.modeIds.map(id=>MODES.find(m=>m.id===id)?.icon||'🧠').join('')}</span>
+        <span class="tmpl-name">${escapeHtml(t.name)}</span>
+        <button class="tmpl-load" onclick="applyTemplate(${JSON.stringify(t.brief).replace(/'/g,"&#39;")},${JSON.stringify(t.modeIds)})">Load</button>
+        <button class="tmpl-del" onclick="deleteTemplate(${t.id})">✕</button>
+      </div>`).join('');
+  }
+}
+
+function applyTemplate(brief,modeIds){
+  document.getElementById('rawIdea').value=brief;
+  document.getElementById('charCount').textContent=brief.length+' chars · ~'+estimateTokens(brief)+' tokens';
+  analyzeBrief(brief);
+  selectedModes=modeIds.slice();
+  renderCards();
+  // Close panel
+  document.getElementById('tmplBtn').classList.remove('open');
+  document.getElementById('tmplPanel').classList.remove('vis');
+  document.getElementById('rawIdea').focus();
+}
+
+function saveCurrentTemplate(){
+  const brief=document.getElementById('rawIdea').value.trim();
+  const name=document.getElementById('tmplName').value.trim();
+  if(!brief){alert('Write a brief first.');return}
+  if(!name){document.getElementById('tmplName').focus();return}
+  const stored=loadStoredTemplates();
+  stored.unshift({id:Date.now(),name,modeIds:selectedModes.slice(),brief,created:new Date().toLocaleString()});
+  saveStoredTemplates(stored);
+  document.getElementById('tmplName').value='';
+  renderTemplates();
+  // Flash confirmation
+  const btn=document.getElementById('tmplSaveBtn');
+  btn.textContent='✓ Saved!';
+  setTimeout(()=>btn.textContent='Save brief',1500);
+}
+
+function deleteTemplate(id){
+  const stored=loadStoredTemplates().filter(t=>t.id!==id);
+  saveStoredTemplates(stored);
+  renderTemplates();
+}
+
+// ── V7: DIFF ──────────────────────────────────────────────────────────
+function startDiff(id){
+  diffBaseId=diffBaseId===id?null:id;
+  renderHistory();
+}
+
+function openDiff(idA,idB){
+  const h=loadHistory();
+  const eA=h.find(x=>x.id===idA);
+  const eB=h.find(x=>x.id===idB);
+  if(!eA||!eB)return;
+
+  const linesA=eA.prompt.split('\n');
+  const linesB=eB.prompt.split('\n');
+  const diff=lcsLines(linesA,linesB);
+  const added=diff.filter(l=>l.type==='add').length;
+  const removed=diff.filter(l=>l.type==='rem').length;
+  const same=diff.filter(l=>l.type==='same').length;
+
+  document.getElementById('diffMeta').innerHTML=`
+    <div class="diff-entry-info">
+      <div class="diff-entry-lbl a">A — Earlier</div>
+      <div class="diff-entry-mode">${eA.modeName}</div>
+      <div class="diff-entry-time">${eA.time}</div>
+    </div>
+    <div style="color:var(--td);align-self:center;font-size:1.2rem">→</div>
+    <div class="diff-entry-info">
+      <div class="diff-entry-lbl b">B — Later</div>
+      <div class="diff-entry-mode">${eB.modeName}</div>
+      <div class="diff-entry-time">${eB.time}</div>
+    </div>`;
+
+  document.getElementById('diffStats').innerHTML=`
+    <span class="ds-tag ds-add">+${added} lines added</span>
+    <span class="ds-tag ds-rem">−${removed} lines removed</span>
+    <span class="ds-tag ds-same">${same} unchanged</span>
+    <span class="ds-tag ds-same">${Math.round((added+removed)*100/Math.max(linesA.length,1))}% changed</span>`;
+
+  document.getElementById('diffView').innerHTML=renderDiffHtml(diff);
+  document.getElementById('diffBackdrop').classList.add('open');
+  document.body.style.overflow='hidden';
+  diffBaseId=null;
+  renderHistory();
+}
+
+function lcsLines(a,b){
+  const m=a.length,n=b.length;
+  // Guard for very large diffs
+  if(m*n>400000){
+    // Fallback: show whole A as removed, whole B as added
+    return [...a.map(t=>({type:'rem',text:t})),...b.map(t=>({type:'add',text:t}))];
+  }
+  const dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    if(a[i-1]===b[j-1])dp[i][j]=dp[i-1][j-1]+1;
+    else dp[i][j]=Math.max(dp[i-1][j],dp[i][j-1]);
+  }
+  const result=[];let i=m,j=n;
+  while(i>0||j>0){
+    if(i>0&&j>0&&a[i-1]===b[j-1]){result.unshift({type:'same',text:a[i-1]});i--;j--;}
+    else if(j>0&&(i===0||dp[i][j-1]>=dp[i-1][j])){result.unshift({type:'add',text:b[j-1]});j--;}
+    else{result.unshift({type:'rem',text:a[i-1]});i--;}
+  }
+  return result;
+}
+
+function renderDiffHtml(diff){
+  let html='',buf=[],h=t=>`${t}`.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function flushBuf(){
+    if(!buf.length)return;
+    if(buf.length<=4){buf.forEach(t=>{html+=`<div class="dl ds-line">${h(t)}</div>`});}
+    else{
+      html+=`<div class="dl ds-line">${h(buf[0])}</div>`;
+      html+=`<div class="dl ds-line">${h(buf[1])}</div>`;
+      html+=`<div class="dl df">··· ${buf.length-4} unchanged lines ···</div>`;
+      html+=`<div class="dl ds-line">${h(buf[buf.length-2])}</div>`;
+      html+=`<div class="dl ds-line">${h(buf[buf.length-1])}</div>`;
+    }
+    buf=[];
+  }
+  diff.forEach(line=>{
+    if(line.type==='same'){buf.push(line.text);}
+    else{
+      flushBuf();
+      if(line.type==='add')html+=`<div class="dl da"><span class="dp">+</span>${h(line.text)}</div>`;
+      else html+=`<div class="dl dr"><span class="dp">−</span>${h(line.text)}</div>`;
+    }
+  });
+  flushBuf();
+  return html||'<div class="dl ds-line" style="color:var(--td);text-align:center;padding:1rem">No differences found.</div>';
+}
+
+function closeDiff(){document.getElementById('diffBackdrop').classList.remove('open');document.body.style.overflow='';}
+function closeDiffOnBg(e){if(e.target===document.getElementById('diffBackdrop'))closeDiff();}
 
 // ── INIT ──────────────────────────────────────────────────────────────
 renderCards();
