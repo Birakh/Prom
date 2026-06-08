@@ -24,6 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Download self-hosted fonts
+        run: bash setup-fonts.sh
+        continue-on-error: true
+        # Site still deploys with system font fallbacks if this step fails.
+        # Fonts are NOT committed to the repo — downloaded fresh on each deploy.
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
