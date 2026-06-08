@@ -13,7 +13,7 @@
 <div class="modal-backdrop" id="modalBackdrop" onclick="closeModalOnBg(event)">
 <div class="modal">
   <div class="modal-head">
-    <div class="modal-title">Blunt <span>— AI Prompt Architect v6</span></div>
+    <div class="modal-title">Blunt <span>— AI Prompt Architect v7</span></div>
     <button class="modal-close" onclick="closeModal()">✕</button>
   </div>
   <div class="modal-tabs">
@@ -89,7 +89,7 @@
 
     <!-- CHANGELOG TAB -->
     <div class="modal-pane" id="pane-log">
-      <div class="cl-intro">Every meaningful change from the original V1 file to V6.</div>
+      <div class="cl-intro">Every meaningful change from the original V1 file to V7.</div>
       <div class="cl-section">
         <div class="cl-ver"><span class="cl-ver-tag v1">V1</span><span class="cl-ver-sub">— original file</span></div>
         <div class="cl-items">
@@ -137,6 +137,19 @@
 </div>
 </div>
 
+<!-- ── DIFF MODAL ──────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="diffBackdrop" onclick="closeDiffOnBg(event)">
+<div class="modal diff-modal">
+  <div class="modal-head">
+    <div class="modal-title">Prompt Diff <span>— line-by-line comparison</span></div>
+    <button class="modal-close" onclick="closeDiff()">✕</button>
+  </div>
+  <div id="diffMeta" class="diff-meta"></div>
+  <div id="diffStats" class="diff-stats"></div>
+  <div id="diffView" class="diff-view"></div>
+</div>
+</div>
+
 <!-- ── HEADER ──────────────────────────────────────────────────────── -->
 <header>
   <div class="logo">
@@ -144,7 +157,7 @@
     <div class="logo-text">Blunt <em>— AI Prompt Architect</em></div>
   </div>
   <div class="hdr-right">
-    <div class="ver-tag">v6.0 · self-hosted · no API</div>
+    <div class="ver-tag">v7.0 · self-hosted · no API</div>
     <button class="help-btn pulse" id="helpBtn" onclick="openModal()" title="Guide &amp; changelog">?</button>
   </div>
 </header>
@@ -169,6 +182,21 @@
     </div>
     <div class="brief-scorer" id="briefScorer"></div>
     <div class="auto-badge"><div class="auto-dot"></div> Stack auto-selected · Ctrl+Enter to generate</div>
+
+    <button class="tmpl-btn" id="tmplBtn" onclick="toggleTemplates()">
+      <span class="arr">▶</span> Brief Templates
+      <span class="tmpl-count" id="tmplCount"></span>
+    </button>
+    <div class="tmpl-panel" id="tmplPanel">
+      <div class="tmpl-sec-lbl">Starter templates</div>
+      <div id="tmplStarters"></div>
+      <div class="tmpl-sec-lbl">Your saved templates</div>
+      <div id="tmplSaved"></div>
+      <div class="tmpl-save-row">
+        <input type="text" id="tmplName" placeholder="Template name...">
+        <button class="tmpl-save-btn" id="tmplSaveBtn" onclick="saveCurrentTemplate()">Save brief</button>
+      </div>
+    </div>
 
     <button class="adv-btn" id="advBtn" onclick="toggleAdv()">
       <span class="arr">▶</span> Advanced Options
@@ -245,7 +273,7 @@
     <div class="divider"></div>
     <div class="sec-lbl">Prompt History</div>
     <div class="hist-head">
-      <div class="hist-sub">Click any entry to restore. Add notes on what worked.</div>
+      <div class="hist-sub">Click to restore · ★ Rate · ⇄ Diff · Add notes</div>
       <button class="clear-btn" onclick="clearHistory()">Clear All</button>
     </div>
     <input type="text" class="hist-search" id="histSearch" placeholder="Filter by mode or idea..." oninput="filterHistory(this.value)">
