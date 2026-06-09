@@ -13,7 +13,7 @@
 <div class="modal-backdrop" id="modalBackdrop" onclick="closeModalOnBg(event)">
 <div class="modal">
   <div class="modal-head">
-    <div class="modal-title">Blunt <span>— AI Prompt Architect v7</span></div>
+    <div class="modal-title">Blunt <span>— AI Prompt Architect v8</span></div>
     <button class="modal-close" onclick="closeModal()">✕</button>
   </div>
   <div class="modal-tabs">
@@ -157,7 +157,7 @@
     <div class="logo-text">Blunt <em>— AI Prompt Architect</em></div>
   </div>
   <div class="hdr-right">
-    <div class="ver-tag">v7.0 · self-hosted · no API</div>
+    <div class="ver-tag">v8.0 · self-hosted · no API</div>
     <button class="help-btn pulse" id="helpBtn" onclick="openModal()" title="Guide &amp; changelog">?</button>
   </div>
 </header>
@@ -265,6 +265,208 @@
       <button class="abtn" onclick="dlFile('md')">↓ .md</button>
       <button class="abtn" onclick="dlFile('txt')">↓ .txt</button>
       <button class="abtn red" onclick="clearOutput()">✕ Clear</button>
+    </div>
+  </section>
+
+
+  <!-- ── V8: EXPERT LAYER ───────────────────────────────────────── -->
+  <section class="expert-section" id="expertSection" style="display:none">
+    <div class="expert-hdr" onclick="toggleExpertLayer()">
+      <div class="expert-title">⚡ Expert Layer</div>
+      <div class="expert-subtitle">Add examples, force a technique, calibrate for your model — takes 13/20 to 18/20</div>
+      <div class="expert-score-badge">
+        <span class="score-base">13</span>
+        <span class="score-arrow">→</span>
+        <span class="score-live" id="scoreLive">13</span>
+        <span class="score-max">/ 20</span>
+      </div>
+      <button class="expert-expand-btn" id="expertExpandBtn">▼ Expand</button>
+    </div>
+
+    <div class="expert-panel" id="expertPanel">
+
+      <!-- 1. Force technique -->
+      <div class="expert-block">
+        <div class="eb-head">
+          <span class="eb-icon">🔒</span>
+          <span class="eb-title">Force a Reasoning Technique</span>
+          <span class="eb-gain">+1</span>
+          <button class="howto-btn" onclick="toggleHowto(event,'ht1')">How to</button>
+        </div>
+        <div class="howto-box" id="ht1">
+          <strong>What this does:</strong> The tool normally asks the AI to pick its own technique. This overrides that — you hard-code exactly which technique to use.<br><br>
+          <strong>When to use it:</strong>
+          <ul>
+            <li>You've run this prompt before and know which technique actually worked</li>
+            <li>Your domain has a clear best-fit technique you've tested</li>
+            <li>The AI keeps picking the wrong technique (check the <code>AUDIT</code> line in its first reply to see what it chose)</li>
+          </ul>
+          <strong>How to choose the right technique:</strong>
+          <ul>
+            <li>Your brief is a plan or strategy that could fail → <code>Adversarial / Pre-mortem</code></li>
+            <li>Your brief has wrong assumptions baked in → <code>First Principles</code></li>
+            <li>Your brief is vague or you're not sure what you really need → <code>Socratic Drilling</code></li>
+            <li>Your topic needs complete, exhaustive coverage → <code>MECE Decomposition</code></li>
+            <li>You know a similar problem was solved in another field → <code>Analogical Reasoning</code></li>
+            <li>First time running this task? Leave empty and let the AI choose.</li>
+          </ul>
+        </div>
+        <div class="eb-body">
+          <select id="forcedTechnique" onchange="updateExpertScore()">
+            <option value="">Auto-select — AI chooses based on your brief</option>
+            <option value="Chain-of-Thought (CoT)">Chain-of-Thought — sequential deduction, debugging, step-by-step logic</option>
+            <option value="Tree-of-Thought (ToT)">Tree-of-Thought — explore multiple solutions, evaluate, prune, converge</option>
+            <option value="First Principles">First Principles — strip wrong assumptions, rebuild from ground truth</option>
+            <option value="Step-Back Prompting">Step-Back — abstract the problem first, then solve the specific instance</option>
+            <option value="Adversarial / Pre-mortem">Adversarial / Pre-mortem — assume it fails, work backward to why</option>
+            <option value="Analogical Reasoning">Analogical Reasoning — find a solved analog elsewhere, transfer the insight</option>
+            <option value="MECE Decomposition">MECE Decomposition — exhaustive, non-overlapping breakdown of the domain</option>
+            <option value="Socratic Drilling">Socratic Drilling — question every assumption until you hit bedrock</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 2. Good example -->
+      <div class="expert-block">
+        <div class="eb-head">
+          <span class="eb-icon">✅</span>
+          <span class="eb-title">Paste a Good Output Example</span>
+          <span class="eb-gain">+1.5 (highest single gain)</span>
+          <button class="howto-btn" onclick="toggleHowto(event,'ht2')">How to</button>
+        </div>
+        <div class="howto-box" id="ht2">
+          <strong>What this does:</strong> Showing the AI a real example of ideal output is more powerful than 500 words of instructions. It teaches format, depth, tone, and structure all at once.<br><br>
+          <strong>What to paste:</strong> A response from any AI — or text you wrote yourself — that hit the right quality for your task. It doesn't need to be on the same topic. The AI learns your <em>format and register</em>, not the specific content.<br><br>
+          <strong>What to look for in a good example:</strong>
+          <ul>
+            <li>The right level of depth (not too shallow, not too academic)</li>
+            <li>The structure you want (prose vs bullets, short vs detailed, numbered steps vs flowing analysis)</li>
+            <li>The tone (direct, clinical, conversational, formal)</li>
+            <li>The reasoning style (surface observation vs deep analysis with trade-offs)</li>
+          </ul>
+          <strong>Don't have a past example yet?</strong> Run the prompt once without this field. Note the best 2–3 paragraphs from the response. Paste those back in here as your good example for the next run. After 2–3 iterations you will have a strong calibration example.<br><br>
+          <strong>Minimum:</strong> 2–3 sentences. Longer is better. Up to ~500 words is ideal.
+        </div>
+        <div class="eb-body">
+          <textarea id="goodExample" rows="5"
+            placeholder="Paste a response you considered excellent — from any AI session or written by you. The AI will match its quality, depth, and structure."
+            oninput="updateExpertScore()"></textarea>
+          <div class="eb-char" id="goodExChars">0 chars</div>
+        </div>
+      </div>
+
+      <!-- 3. Bad example -->
+      <div class="expert-block">
+        <div class="eb-head">
+          <span class="eb-icon">❌</span>
+          <span class="eb-title">Paste a Bad Output Example</span>
+          <span class="eb-gain">+0.5</span>
+          <button class="howto-btn" onclick="toggleHowto(event,'ht3')">How to</button>
+        </div>
+        <div class="howto-box" id="ht3">
+          <strong>What this does:</strong> Showing what NOT to do is often more effective than more instructions about what TO do. The AI has default patterns it falls back to — this overrides them.<br><br>
+          <strong>What to paste:</strong> A response that was too generic, too shallow, wrong tone, or missed the point. Add one sentence <em>before</em> the example saying why it was bad.<br><br>
+          <strong>Example format:</strong>
+          <div class="ht-example">"This response was too generic — it could apply to any business, not mine specifically."
+
+[paste the bad response here]</div>
+          <strong>Common things to flag as bad:</strong>
+          <ul>
+            <li>"This response gave bullet points when I needed flowing prose"</li>
+            <li>"This response hedged every recommendation with caveats"</li>
+            <li>"This response was too shallow — it summarised instead of analysing"</li>
+            <li>"This response gave me the textbook answer, not a specific one for my context"</li>
+          </ul>
+          <strong>No bad example yet?</strong> Describe the most common failure mode for your task type. For example: "Generic advice that ignores the specific constraints I listed."
+        </div>
+        <div class="eb-body">
+          <textarea id="badExample" rows="4"
+            placeholder="Start with one sentence: why this response was bad. Then paste the response below it. The AI will actively avoid these patterns."
+            oninput="updateExpertScore()"></textarea>
+          <div class="eb-char" id="badExChars">0 chars</div>
+        </div>
+      </div>
+
+      <!-- 4. Domain rules -->
+      <div class="expert-block">
+        <div class="eb-head">
+          <span class="eb-icon">📋</span>
+          <span class="eb-title">Add Domain-Specific Rules</span>
+          <span class="eb-gain">+1</span>
+          <button class="howto-btn" onclick="toggleHowto(event,'ht4')">How to</button>
+        </div>
+        <div class="howto-box" id="ht4">
+          <strong>What this does:</strong> The tool already bans generic bad patterns (hedging, summaries, cheerleading). Your domain has specific ones it doesn't know about. This is where you add them.<br><br>
+          <strong>How to write them:</strong>
+          <ul>
+            <li>Start each rule with <code>Do not</code></li>
+            <li>Be specific — name the exact thing to avoid, not a vague category</li>
+            <li>One rule per line</li>
+            <li>3–7 rules is optimal. More than 10 dilutes effectiveness.</li>
+          </ul>
+          <strong>Examples by domain:</strong>
+          <div class="ht-example"><span class="ht-section-lbl">Software engineering</span>Do not suggest architecture patterns without explaining the trade-offs.
+Do not recommend libraries without noting maintenance status and bundle size.
+Do not assume the existing codebase follows any particular pattern.
+
+<span class="ht-section-lbl">Business strategy</span>Do not use market size estimates without stating the source and year.
+Do not recommend a pivot unless at least two core assumptions have failed.
+Do not present a single path forward — always show at least two options.
+
+<span class="ht-section-lbl">Marketing copy</span>Do not use passive voice in headlines.
+Do not write benefit statements that could apply to any competitor.
+Do not include more than one call to action per piece.
+
+<span class="ht-section-lbl">Research / analysis</span>Do not present contested claims as settled facts.
+Do not cite secondary sources when primary sources are available.
+Do not omit contradicting evidence.</div>
+        </div>
+        <div class="eb-body">
+          <textarea id="domainRules" rows="5"
+            placeholder="Do not use market size estimates without citing a source.&#10;Do not recommend a single solution — always present trade-offs.&#10;Do not assume the user has a technical background."
+            oninput="updateExpertScore()"></textarea>
+          <div class="eb-char" id="domainChars">0 chars</div>
+        </div>
+      </div>
+
+      <!-- 5. Model calibration -->
+      <div class="expert-block">
+        <div class="eb-head">
+          <span class="eb-icon">🤖</span>
+          <span class="eb-title">Calibrate for Your AI Model</span>
+          <span class="eb-gain">+1</span>
+          <button class="howto-btn" onclick="toggleHowto(event,'ht5')">How to</button>
+        </div>
+        <div class="howto-box" id="ht5">
+          <strong>What this does:</strong> Claude, GPT-4, and Gemini have different default behaviours. This tool is model-agnostic, which means it's optimally tuned for none of them. Selecting your model applies known fixes automatically.<br><br>
+          <strong>What each calibration fixes:</strong>
+          <ul>
+            <li><strong>Claude</strong> — Tends to be verbose in acknowledgments and adds unnecessary caveats. Calibration: keeps replies brief, blocks apology openers, removes disclaimer habits.</li>
+            <li><strong>GPT-4 / GPT-4o</strong> — Defaults to markdown headers and tends to ask extra clarifying questions beyond what the Interview Phase calls for. Calibration: blocks auto-formatting, limits questions to declared steps.</li>
+            <li><strong>Gemini</strong> — Drifts back to default behaviour faster than other models across multi-turn conversations. Calibration: re-anchors constraints for every turn, not just the first reply.</li>
+            <li><strong>GPT-3.5</strong> — Struggles with complex multi-step instructions and tries to compress all steps into one response. Calibration: forces step-by-step execution, prevents skipping stages.</li>
+          </ul>
+          <strong>Not sure which model you're using?</strong> If you're on Claude.ai, select Claude. If you're on ChatGPT, select GPT-4 or GPT-3.5 depending on your plan. If you're using the API, check your model parameter.
+        </div>
+        <div class="eb-body">
+          <select id="modelSelect" onchange="updateExpertScore()">
+            <option value="other">Select your model...</option>
+            <option value="claude">Claude (Anthropic) — Claude 3, 3.5, 4 series</option>
+            <option value="gpt4">GPT-4 / GPT-4o (OpenAI) — paid ChatGPT or API</option>
+            <option value="gemini">Gemini (Google) — Gemini Pro, Ultra, 1.5</option>
+            <option value="gpt35">GPT-3.5 (OpenAI) — free ChatGPT tier</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Apply -->
+      <div class="expert-apply-row">
+        <button class="expert-apply-btn" onclick="applyExpertLayer()">
+          ⬆ Apply Expert Layer to Prompt
+        </button>
+        <div class="applied-badge" id="appliedBadge"></div>
+      </div>
+
     </div>
   </section>
 
