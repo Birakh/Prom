@@ -83,7 +83,7 @@ const STARTER_TEMPLATES=[
   {id:'_ap',  modeId:'allpurpose', name:'Complex task',
    brief:'Task: [exactly what needs to be done].\nContext: [relevant background].\nConstraints: [limits, requirements, what to avoid].\nOutput format: [how you want the result structured].\nDone when: [specific completion criteria].'}
 ];
-const TKEY='blunt_v7_templates';
+const TKEY='blunt_v8_templates';
 
 // ── V7: STATE ─────────────────────────────────────────────────────────
 let diffBaseId=null;
@@ -461,7 +461,9 @@ function generate(){
     <span class="otag">${new Date().toLocaleTimeString()}</span>`;
 
   const sec=document.getElementById('outputSection');
+  document.getElementById('expertSection').style.display='block';
   sec.style.display='block';sec.classList.remove('reveal');void sec.offsetWidth;sec.classList.add('reveal');
+  const ab=document.getElementById('appliedBadge');if(ab){ab.classList.remove('vis');}
   setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),80);
   saveHistory(selectedModes,rawIdea,body,bluntness,expertiseLevel,outputLen);
 }
@@ -780,6 +782,145 @@ function renderDiffHtml(diff){
 
 function closeDiff(){document.getElementById('diffBackdrop').classList.remove('open');document.body.style.overflow='';}
 function closeDiffOnBg(e){if(e.target===document.getElementById('diffBackdrop'))closeDiff();}
+
+
+// ── V8: EXPERT LAYER ─────────────────────────────────────────────────
+const TECHNIQUES_LIST=[
+  {v:'',     l:'Auto-select — AI chooses based on your brief (recommended for new tasks)'},
+  {v:'Chain-of-Thought (CoT)',    l:'Chain-of-Thought — sequential deduction, debugging, step-by-step logic'},
+  {v:'Tree-of-Thought (ToT)',     l:'Tree-of-Thought — explore multiple solutions, evaluate, prune, converge'},
+  {v:'First Principles',          l:'First Principles — strip wrong assumptions, rebuild from ground truth'},
+  {v:'Step-Back Prompting',       l:'Step-Back — abstract the problem first, then solve the specific'},
+  {v:'Adversarial / Pre-mortem',  l:'Adversarial — assume it fails, work backward to why'},
+  {v:'Analogical Reasoning',      l:'Analogical — find a solved analog elsewhere, transfer the insight'},
+  {v:'MECE Decomposition',        l:'MECE — exhaustive, non-overlapping breakdown of the domain'},
+  {v:'Socratic Drilling',         l:'Socratic Drilling — question every assumption until bedrock'}
+];
+
+const MODEL_CALIBRATIONS={
+  claude:`MODEL CALIBRATION — Claude (Anthropic):
+* Keep your acknowledgment reply to 2–3 sentences maximum.
+* Do not use markdown headers (##, ###) in conversational replies.
+* Do not open any response with an apology, caveat, or disclaimer.
+* Do not add "I should note..." or "It's worth mentioning..." qualifiers.`,
+  gpt4:`MODEL CALIBRATION — GPT-4 / GPT-4o (OpenAI):
+* Do not add markdown headers (##, ###) unless explicitly requested.
+* Do not ask additional clarifying questions beyond the Interview Phase.
+* Format the ROLE/FRAMEWORK/QUESTIONS opening as plain text, not bold or bulleted.
+* Do not append unsolicited next-steps suggestions at the end of responses.`,
+  gemini:`MODEL CALIBRATION — Gemini (Google):
+* All constraints in this prompt apply to EVERY turn, not just the first reply.
+* Do not reset to default behaviour after the first exchange.
+* Re-check the STACK AUDIT requirement before ending every response.
+* Do not summarise previous responses at the start of new ones.`,
+  gpt35:`MODEL CALIBRATION — GPT-3.5 (OpenAI):
+* Work through this prompt step by step. Do not attempt all steps at once.
+* Do not compress the Interview Phase and analysis into a single response.
+* Follow the declared technique explicitly — name each step as you execute it.
+* Do not skip the Pre-flight Check even if context seems sufficient.`
+};
+
+function toggleExpertLayer(){
+  const panel=document.getElementById('expertPanel');
+  panel.classList.toggle('vis');
+  document.getElementById('expertExpandBtn').textContent=
+    panel.classList.contains('vis')?'▲ Collapse':'▼ Expand';
+}
+
+function toggleHowto(ev,id){
+  ev.stopPropagation();
+  const box=document.getElementById(id);
+  const btn=ev.currentTarget;
+  box.classList.toggle('vis');
+  btn.textContent=box.classList.contains('vis')?'Hide':'How to';
+}
+
+function updateExpertScore(){
+  const t  =document.getElementById('forcedTechnique').value;
+  const g  =(document.getElementById('goodExample').value||'').trim();
+  const b  =(document.getElementById('badExample').value||'').trim();
+  const dr =(document.getElementById('domainRules').value||'').trim();
+  const m  =document.getElementById('modelSelect').value;
+
+  let score=13.0;
+  if(t)            score+=1.0;
+  if(g.length>30)  score+=1.5;
+  if(b.length>30)  score+=0.5;
+  if(dr.length>10) score+=1.0;
+  if(m&&m!=='other')score+=1.0;
+  score=Math.min(score,18.0);
+
+  const el=document.getElementById('scoreLive');
+  if(el)el.textContent=Number.isInteger(score)?score:score.toFixed(1);
+
+  const gc=document.getElementById('goodExChars');
+  const bc=document.getElementById('badExChars');
+  const dc=document.getElementById('domainChars');
+  if(gc)gc.textContent=g.length+' chars';
+  if(bc)bc.textContent=b.length+' chars';
+  if(dc)dc.textContent=dr.length+' chars';
+}
+
+function applyExpertLayer(){
+  const prompt=document.getElementById('outputTA').value.trim();
+  if(!prompt){alert('Generate a prompt first, then apply the expert layer.');return}
+
+  const t  =document.getElementById('forcedTechnique').value;
+  const g  =(document.getElementById('goodExample').value||'').trim();
+  const b  =(document.getElementById('badExample').value||'').trim();
+  const dr =(document.getElementById('domainRules').value||'').trim();
+  const m  =document.getElementById('modelSelect').value;
+
+  if(!t&&!g&&!b&&!dr&&(!m||m==='other')){
+    alert('Fill in at least one expert layer field before applying.');return;
+  }
+
+  const layers=[];
+
+  if(t){layers.push(
+`TECHNIQUE OVERRIDE — supersedes the self-selection instructions above:
+Use ONLY: ${t}
+Do not consider other techniques. Do not justify this choice in your stack declaration.
+In your ROLE line, write: "Using forced technique: ${t}"`);}
+
+  if(g){layers.push(
+`EXAMPLE OF IDEAL OUTPUT — study this before responding:
+Match its quality, depth, structure, and language register.
+<good_example>
+${g}
+</good_example>`);}
+
+  if(b){layers.push(
+`EXAMPLE OF OUTPUT TO AVOID:
+Identify what makes this poor and actively avoid those patterns.
+<bad_example>
+${b}
+</bad_example>`);}
+
+  if(dr){layers.push(
+`ADDITIONAL DOMAIN-SPECIFIC RULES:
+${dr}`);}
+
+  if(m&&m!=='other'&&MODEL_CALIBRATIONS[m]){
+    layers.push(MODEL_CALIBRATIONS[m]);
+  }
+
+  const block=`\n━━━ EXPERT LAYER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${layers.join('\n\n')}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  const MARKER='━━━ YOUR FIRST REPLY';
+  const updated=prompt.includes(MARKER)
+    ?prompt.replace(MARKER,block.trim()+'\n\n'+MARKER)
+    :prompt+'\n'+block;
+
+  document.getElementById('outputTA').value=updated;
+
+  const tokens=estimateTokens(updated);
+  const badge=document.getElementById('appliedBadge');
+  badge.textContent=`✓ ${layers.length} addition${layers.length!==1?'s':''} injected · ~${tokens.toLocaleString()} tokens`;
+  badge.classList.add('vis');
+
+  document.getElementById('outputTA').scrollIntoView({behavior:'smooth',block:'start'});
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────
 renderCards();
