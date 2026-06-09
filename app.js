@@ -608,31 +608,48 @@ function toggleTemplates(){
   document.getElementById('tmplBtn').classList.toggle('open');
   const p=document.getElementById('tmplPanel');
   p.classList.toggle('vis');
-  if(p.classList.contains('vis'))renderTemplates();
+  if(p.classList.contains('vis')){
+    renderTemplates();
+    const n=loadStoredTemplates().length;
+    document.getElementById('tmplCount').textContent=n>0?n+' saved':'';
+  }
 }
+
+// Global template cache — avoids JSON.stringify in onclick attributes
+const _TC={};
 
 function renderTemplates(){
   const stored=loadStoredTemplates();
-  // Starters
+  // Rebuild cache with current starters + saved
+  Object.keys(_TC).forEach(k=>delete _TC[k]);
+  STARTER_TEMPLATES.forEach(t=>{_TC[String(t.id)]=t});
+  stored.forEach(t=>{_TC[String(t.id)]=t});
+
   document.getElementById('tmplStarters').innerHTML=STARTER_TEMPLATES.map(t=>`
     <div class="tmpl-item">
       <span class="tmpl-icon">${MODES.find(m=>m.id===t.modeId)?.icon||'🧠'}</span>
       <span class="tmpl-name">${t.name}</span>
-      <button class="tmpl-load" onclick="applyTemplate(${JSON.stringify(t.brief).replace(/'/g,"&#39;")},${JSON.stringify([t.modeId])})">Load</button>
+      <button class="tmpl-load" onclick="applyTemplateById('${t.id}')">Load</button>
     </div>`).join('');
-  // Saved
+
   const savedEl=document.getElementById('tmplSaved');
   if(!stored.length){
-    savedEl.innerHTML='<div class="tmpl-empty">No saved templates yet.</div>';
+    savedEl.innerHTML='<div class="tmpl-empty">No saved templates yet. Write a brief and click Save.</div>';
   } else {
     savedEl.innerHTML=stored.map(t=>`
       <div class="tmpl-item">
         <span class="tmpl-icon">${t.modeIds.map(id=>MODES.find(m=>m.id===id)?.icon||'🧠').join('')}</span>
         <span class="tmpl-name">${escapeHtml(t.name)}</span>
-        <button class="tmpl-load" onclick="applyTemplate(${JSON.stringify(t.brief).replace(/'/g,"&#39;")},${JSON.stringify(t.modeIds)})">Load</button>
+        <button class="tmpl-load" onclick="applyTemplateById('${t.id}')">Load</button>
         <button class="tmpl-del" onclick="deleteTemplate(${t.id})">✕</button>
       </div>`).join('');
   }
+}
+
+function applyTemplateById(id){
+  const t=_TC[String(id)];
+  if(!t)return;
+  applyTemplate(t.brief, t.modeId?[t.modeId]:t.modeIds);
 }
 
 function applyTemplate(brief,modeIds){
