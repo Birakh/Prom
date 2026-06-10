@@ -13,7 +13,7 @@
 <div class="modal-backdrop" id="modalBackdrop" onclick="closeModalOnBg(event)">
 <div class="modal">
   <div class="modal-head">
-    <div class="modal-title">Blunt <span>— AI Prompt Architect v8</span></div>
+    <div class="modal-title">Blunt <span>— AI Prompt Architect v9</span></div>
     <button class="modal-close" onclick="closeModal()">✕</button>
   </div>
   <div class="modal-tabs">
@@ -157,7 +157,7 @@
     <div class="logo-text">Blunt <em>— AI Prompt Architect</em></div>
   </div>
   <div class="hdr-right">
-    <div class="ver-tag">v8.0 · self-hosted · no API</div>
+    <div class="ver-tag">v9.0 · self-hosted · no API</div>
     <button class="help-btn pulse" id="helpBtn" onclick="openModal()" title="Guide &amp; changelog">?</button>
   </div>
 </header>
@@ -244,6 +244,20 @@
         <div class="tgl-sw"></div>
         <span class="tgl-text">Export as SKILL.md</span>
       </label>
+      <div class="adv-footer">
+        <div class="save-indicator" id="saveIndicator"></div>
+        <button class="reset-btn" onclick="clearDefaults()">✕ Reset saved settings</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02b: TASK NAME -->
+  <section style="margin-bottom:0">
+    <div class="task-row">
+      <span class="task-lbl">📁 Task</span>
+      <input type="text" id="taskName" class="task-input"
+        placeholder="Name this group of runs — e.g. 'SaaS pricing' (optional, groups history entries)"
+        oninput="scheduleDefaultsSave()">
     </div>
   </section>
 
@@ -268,6 +282,28 @@
     </div>
   </section>
 
+
+
+  <!-- ── V9: RESPONSE CAPTURE ──────────────────────────────────── -->
+  <section class="capture-section" id="captureSection" style="display:none">
+    <div class="sec-lbl">04 · Capture AI Response<span class="sec-sub">— paste to extract good example or save this run</span></div>
+    <div class="ta-wrap">
+      <textarea id="responseTA" rows="7"
+        placeholder="After running the prompt in Claude or ChatGPT, paste the full response here.&#10;&#10;Click Extract Best Paragraphs to auto-identify the highest-quality parts for your Good Example field. Or use the whole response as-is."></textarea>
+    </div>
+    <div class="capture-actions">
+      <button class="abtn ok" onclick="extractBest()">✦ Extract Best Paragraphs</button>
+      <button class="abtn" onclick="useAsGoodExample()">→ Use Whole Response as Example</button>
+    </div>
+    <div class="extract-preview" id="extractPreview">
+      <span class="extract-lbl">Top paragraphs extracted — review and edit before applying:</span>
+      <textarea id="extractTA" rows="5"></textarea>
+      <div class="extract-actions">
+        <button class="abtn ok" onclick="applyExtractedExample()">✓ Apply as Good Example</button>
+        <button class="abtn red" onclick="discardExtract()">✕ Discard</button>
+      </div>
+    </div>
+  </section>
 
   <!-- ── V8: EXPERT LAYER ───────────────────────────────────────── -->
   <section class="expert-section" id="expertSection" style="display:none">
