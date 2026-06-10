@@ -83,10 +83,18 @@ const STARTER_TEMPLATES=[
   {id:'_ap',  modeId:'allpurpose', name:'Complex task',
    brief:'Task: [exactly what needs to be done].\nContext: [relevant background].\nConstraints: [limits, requirements, what to avoid].\nOutput format: [how you want the result structured].\nDone when: [specific completion criteria].'}
 ];
-const TKEY='blunt_v8_templates';
+const TKEY='blunt_v9_templates';
 
 // ── V7: STATE ─────────────────────────────────────────────────────────
 let diffBaseId=null;
+
+
+// ── V9: MODE-SPECIFIC DEFAULT BLUNTNESS ──────────────────────────────
+const MODE_BLUNTNESS={youtube:3,allpurpose:4,code:3,business:4,research:3,marketing:3};
+
+// ── V9: DEFAULTS KEY ──────────────────────────────────────────────────
+const DKEY='blunt_v9_defaults';
+let _defTimer=null;
 
 // V6: multi-mode state (1 or 2 selected)
 let selectedModes=['youtube'];
@@ -138,11 +146,18 @@ function renderCards(){
 }
 
 function pickMode(id){
+  const prev=selectedModes[0];
   const idx=selectedModes.indexOf(id);
   if(idx!==-1){if(selectedModes.length>1)selectedModes.splice(idx,1)}
   else if(selectedModes.length<2){selectedModes.push(id)}
   else{selectedModes[1]=id}
+  // V9: mode-specific default bluntness on primary mode change
+  if(selectedModes[0]!==prev&&MODE_BLUNTNESS[selectedModes[0]]){
+    document.getElementById('bluntSlider').value=MODE_BLUNTNESS[selectedModes[0]];
+    syncBluntness();
+  }
   renderCards();
+  scheduleDefaultsSave();
 }
 
 function renderPairs(){
@@ -465,7 +480,9 @@ function generate(){
   sec.style.display='block';sec.classList.remove('reveal');void sec.offsetWidth;sec.classList.add('reveal');
   const ab=document.getElementById('appliedBadge');if(ab){ab.classList.remove('vis');}
   setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),80);
-  saveHistory(selectedModes,rawIdea,body,bluntness,expertiseLevel,outputLen);
+  saveHistory(selectedModes,rawIdea,body,bluntness,expertiseLevel,outputLen,getCurrentTaskName());
+  const cs=document.getElementById('captureSection');if(cs)cs.style.display='block';
+  saveDefaults();
 }
 
 // ── OUTPUT ACTIONS ────────────────────────────────────────────────────
@@ -487,14 +504,14 @@ function clearOutput(){document.getElementById('outputSection').style.display='n
 // ── HISTORY + NOTES ───────────────────────────────────────────────────
 const HKEY='blunt_v6_history';
 
-function saveHistory(modeIds,idea,prompt,bluntness,expertise,outLen){
+function saveHistory(modeIds,idea,prompt,bluntness,expertise,outLen,taskName){
   let h=loadHistory();
   const m1=MODES.find(x=>x.id===modeIds[0]);
   const m2=modeIds.length===2?MODES.find(x=>x.id===modeIds[1]):null;
   h.unshift({id:Date.now(),
     modeIds:modeIds.slice(),
     modeName:m2?`${m1.name} + ${m2.name}`:m1.name,
-    idea:idea.substring(0,120),prompt,bluntness,expertise,outLen,note:'',rating:0,used:false,
+    idea:idea.substring(0,120),prompt,bluntness,expertise,outLen,note:'',rating:0,used:false,taskName:taskName||'',
     time:new Date().toLocaleString()});
   if(h.length>15)h=h.slice(0,15);
   try{localStorage.setItem(HKEY,JSON.stringify(h))}catch(e){}
@@ -522,6 +539,7 @@ function renderHistoryItems(h){
             <span class="hist-badge">${BLUNTNESS_LABELS[(e.bluntness||4)-1]}</span>
             <span class="hist-badge">${e.expertise||'advanced'}</span>
             <span class="hist-badge">${e.outLen||'detailed'}</span>
+            ${e.taskName?`<span class="hist-task">📁 ${escapeHtml(e.taskName)}</span>`:''}
           </div>
         </div>
         <div class="hist-right">
@@ -552,7 +570,7 @@ function renderHistory(){
 
 function filterHistory(q){
   const h=loadHistory();const ql=q.toLowerCase();
-  renderHistoryItems(ql?h.filter(e=>e.modeName.toLowerCase().includes(ql)||e.idea.toLowerCase().includes(ql)):h);
+  renderHistoryItems(ql?h.filter(e=>e.modeName.toLowerCase().includes(ql)||e.idea.toLowerCase().includes(ql)||(e.taskName&&e.taskName.toLowerCase().includes(ql))):h);
 }
 
 function restoreHistory(id){
@@ -922,12 +940,145 @@ ${dr}`);}
   document.getElementById('outputTA').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+
+// ── V9: DEFAULTS ──────────────────────────────────────────────────────
+function saveDefaults(){
+  const d={
+    persona:  document.getElementById('personaInput').value.trim(),
+    audience: document.getElementById('audienceInput').value.trim(),
+    bluntness:parseInt(document.getElementById('bluntSlider').value),
+    expertise:expertiseLevel,
+    outputLen:outputLen,
+    modes:    selectedModes.slice(),
+    model:    (document.getElementById('modelSelect')||{value:'other'}).value,
+    domainRules:(document.getElementById('domainRules')||{value:''}).value.trim(),
+    forcedTechnique:(document.getElementById('forcedTechnique')||{value:''}).value,
+    taskName:(document.getElementById('taskName')||{value:''}).value.trim()
+  };
+  try{localStorage.setItem(DKEY,JSON.stringify(d))}catch(e){}
+  const ind=document.getElementById('saveIndicator');
+  if(ind){ind.textContent='✓ Settings saved';ind.classList.add('vis');clearTimeout(_defTimer);_defTimer=setTimeout(()=>ind.classList.remove('vis'),1800)}
+}
+
+function loadDefaults(){
+  try{
+    const d=JSON.parse(localStorage.getItem(DKEY));
+    if(!d)return;
+    if(d.persona)  document.getElementById('personaInput').value=d.persona;
+    if(d.audience) document.getElementById('audienceInput').value=d.audience;
+    if(d.bluntness){document.getElementById('bluntSlider').value=d.bluntness;syncBluntness()}
+    if(d.expertise)setExpertise(d.expertise);
+    if(d.outputLen)setOutputLen(d.outputLen);
+    if(d.modes&&d.modes.length){
+      const valid=d.modes.filter(id=>MODES.some(m=>m.id===id));
+      if(valid.length){selectedModes=valid;renderCards()}
+    }
+    if(d.taskName){const tn=document.getElementById('taskName');if(tn)tn.value=d.taskName}
+    // Expert layer fields load after DOM is ready
+    setTimeout(()=>{
+      if(d.model){const ms=document.getElementById('modelSelect');if(ms){ms.value=d.model;updateExpertScore()}}
+      if(d.domainRules){const dr=document.getElementById('domainRules');if(dr){dr.value=d.domainRules;updateExpertScore()}}
+      if(d.forcedTechnique){const ft=document.getElementById('forcedTechnique');if(ft){ft.value=d.forcedTechnique;updateExpertScore()}}
+    },150);
+  }catch(e){}
+}
+
+function clearDefaults(){
+  try{localStorage.removeItem(DKEY)}catch(e){}
+  document.getElementById('personaInput').value='';
+  document.getElementById('audienceInput').value='';
+  document.getElementById('bluntSlider').value=4;syncBluntness();
+  setExpertise('advanced');setOutputLen('detailed');
+  selectedModes=['youtube'];renderCards();
+  const tn=document.getElementById('taskName');if(tn)tn.value='';
+  const ind=document.getElementById('saveIndicator');
+  if(ind){ind.textContent='Settings cleared';ind.classList.add('vis');clearTimeout(_defTimer);_defTimer=setTimeout(()=>ind.classList.remove('vis'),1800)}
+}
+
+function scheduleDefaultsSave(){clearTimeout(_defTimer);_defTimer=setTimeout(saveDefaults,900)}
+
+// ── V9: TASK ──────────────────────────────────────────────────────────
+function getCurrentTaskName(){return(document.getElementById('taskName')||{value:''}).value.trim()}
+
+// ── V9: RESPONSE CAPTURE ─────────────────────────────────────────────
+function scoreParagraph(p){
+  const HEDGES=['might','could','perhaps','generally','often','sometimes','may','possibly','arguably','tend to','in some cases','it depends','various factors','several'];
+  const GENERIC=['it is important','you should consider','there are many','in conclusion','to summarize','overall,','in general','as mentioned','needless to say'];
+  const SIGNALS=['specifically','because','therefore','however','instead','unlike','compared to','the reason','this means','as a result','in practice','for example','for instance'];
+  const words=p.split(/\s+/).filter(w=>w.length>1);
+  let s=0;
+  if(words.length>=20)s+=10;
+  if(words.length>=40)s+=15;
+  if(words.length>220)s-=15;
+  (p.match(/\d[\d,.]*%?/g)||[]).forEach(()=>s+=6);
+  (p.match(/(?<![.\n]\s*)[A-Z][a-z]{3,}/g)||[]).forEach(()=>s+=2);
+  HEDGES.forEach(h=>{if(p.toLowerCase().includes(h))s-=8});
+  GENERIC.forEach(g=>{if(p.toLowerCase().includes(g))s-=12});
+  SIGNALS.forEach(sg=>{if(p.toLowerCase().includes(sg))s+=6});
+  if(p.includes('`'))s+=20;
+  return s;
+}
+
+function extractBestParagraphs(text){
+  const paras=text.split(/\n\n+/).map(p=>p.trim()).filter(p=>p.length>40);
+  if(!paras.length)return text.trim();
+  const scored=paras.map(p=>({text:p,score:scoreParagraph(p)}));
+  scored.sort((a,b)=>b.score-a.score);
+  return scored.slice(0,Math.min(3,scored.length)).map(s=>s.text).join('\n\n');
+}
+
+function extractBest(){
+  const text=document.getElementById('responseTA').value.trim();
+  if(!text){alert('Paste the AI response first.');return}
+  const best=extractBestParagraphs(text);
+  document.getElementById('extractTA').value=best;
+  document.getElementById('extractPreview').style.display='block';
+  document.getElementById('extractTA').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function applyExtractedExample(){
+  const text=document.getElementById('extractTA').value.trim();
+  if(!text)return;
+  const ge=document.getElementById('goodExample');
+  if(ge){
+    ge.value=text;updateExpertScore();
+    const panel=document.getElementById('expertPanel');
+    if(panel&&!panel.classList.contains('vis'))toggleExpertLayer();
+    ge.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  discardExtract();
+}
+
+function useAsGoodExample(){
+  const text=document.getElementById('responseTA').value.trim();
+  if(!text){alert('Paste the AI response first.');return}
+  const ge=document.getElementById('goodExample');
+  if(ge){
+    ge.value=text;updateExpertScore();
+    const panel=document.getElementById('expertPanel');
+    if(panel&&!panel.classList.contains('vis'))toggleExpertLayer();
+    ge.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+}
+
+function discardExtract(){
+  document.getElementById('extractPreview').style.display='none';
+  document.getElementById('extractTA').value='';
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────
 renderCards();
 renderHistory();
 renderFwList();
+loadDefaults();
+// Auto-save on Advanced Options changes
+['personaInput','audienceInput','bluntSlider'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('input',scheduleDefaultsSave);
+});
 if(!localStorage.getItem('blunt_seen_v6'))document.getElementById('helpBtn').classList.add('pulse');
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape')closeModal();
   if((e.ctrlKey||e.metaKey)&&e.key==='Enter')generate();
+  if(e.shiftKey&&e.key==='Enter'){e.preventDefault();applyExpertLayer();}
 });
